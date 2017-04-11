@@ -5,14 +5,14 @@ class TextureWindow:
     def __init__(self, windows, prev_windows, fft_length=512):
         self.windows = windows
         self.prev_windows = prev_windows
-        self.fft_length = fft_length
+        self.fft_length = fft_length // 2 + 1
 
         self.fft_mags = np.array([
-            np.absolute( np.fft.fft(window, n=fft_length) )
+            np.absolute( np.fft.rfft(window) )
                 for window in self.windows
         ])
         self.prev_fft_mags = np.array([
-            np.absolute( np.fft.fft(window, n=fft_length) )
+            np.absolute( np.fft.rfft(window) )
                 for window in self.prev_windows
         ])
 
