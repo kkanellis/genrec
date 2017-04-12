@@ -18,7 +18,6 @@ class TextureWindow:
         #plt.magnitude_spectrum(np.array(windows).ravel(), Fs=sampling_rate)
         #plt.show()
 
-
         """
         self._fft_tex_wnds = np.array([
             np.abs(librosa.stft(
@@ -79,25 +78,26 @@ class TextureWindow:
 
 
     def flux(self):
-        """
-        mags_norm = np.array([
-            fft_mag / self._get_wnd_nrg(fft_mag)
-            for fft_mag in self.fft_mags
-        ])
+        fft_tex_wnds_T = self.fft_tex_wnds.T
+        w_nrg = librosa.feature.rmse(
+            S=self.fft_tex_wnds,
+            frame_length=self.an_wnd_len,
+            hop_length=self.an_wnd_len
+        ).ravel()
 
-        prev_mags_norm = np.array([
-            fft_mag / self._get_wnd_nrg(fft_mag)
-            for fft_mag in self.prev_fft_mags
-        ])
+        # normalize via energy
+        for i in range(len(fft_tex_wnds_T)):
+            fft_tex_wnds_T[i] /= w_nrg[i]
 
-        fluxes = [
-            np.linalg.norm(curr - prev)
-            for prev, curr in
-                zip(prev_mags_norm, mags_norm)
-        ]
-        """
+        fluxes = np.empty(
+            shape=(len(fft_tex_wnds_T) - 1,),
+            dtype=np.float64,
+        )
+        for i in range(1, len(fft_tex_wnds_T)):
+            fluxes[i-1] = np.sum(
+                (fft_tex_wnds_T[i-1] - fft_tex_wnds_T[i]) ** 2
+            )
 
-        fluxes = [0, 0]
         return np.mean(fluxes), np.std(fluxes)
 
     def zero_crossings(self):
