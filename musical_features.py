@@ -45,6 +45,12 @@ class TextureWindow:
         """
 
     def centroid(self):
+        """
+        Calculate the spectral centroid for each analysis window
+
+        Returns the mean and variance
+        """
+
         centroids = librosa.feature.spectral_centroid(
             S=self.fft_tex_wnds
         ).ravel()
@@ -52,6 +58,12 @@ class TextureWindow:
 
 
     def rolloff(self):
+        """
+        Calculate the roll-off frequency for each analysis window
+
+        Returns the mean and variance
+        """
+
         rolloffs = librosa.feature.spectral_rolloff(
             S=self.fft_tex_wnds
         ).ravel()
@@ -59,6 +71,12 @@ class TextureWindow:
 
 
     def flux(self):
+        """
+        Calculate the spectral flux for each analysis window
+
+        Returns the mean and variance
+        """
+
         fft_tex_wnds_T = self.fft_tex_wnds.T
         w_nrg = librosa.feature.rmse(
             S=self.fft_tex_wnds,
@@ -83,6 +101,12 @@ class TextureWindow:
 
 
     def zero_crossings(self):
+        """
+        Calculate the perc of zero crossings for each analysis window
+
+        Returns the mean and variance
+        """
+
         zc = librosa.feature.zero_crossing_rate(
             y=self.tex_wnd,
             frame_length=self.an_wnd_len,
@@ -91,7 +115,29 @@ class TextureWindow:
         return np.mean(zc), np.std(zc)
 
 
+    def mfcc(self, n_mfcc=5):
+        """
+        Calculate the first 'n_mfcc' MFCCs for each analysis window
+
+        Returns the mean and variance
+        """
+
+        mfccs = librosa.feature.mfcc(
+            S=self.fft_tex_wnds,
+            frame_length=self.an_wnd_len,
+            hop_length=self.an_wnd_len,
+            n_mfcc=n_mfcc,
+        )
+
+        return np.mean(mfccs, axis=1), np.std(mfccs, axis=1)
+
+
     def low_energy(self):
+        """
+        Returns the perc of analysis windows which have energy
+        less than the mean energy of this texture window
+        """
+
         w_nrg = librosa.feature.rmse(
             S=self.fft_tex_wnds,
             frame_length=self.an_wnd_len,
@@ -104,18 +150,11 @@ class TextureWindow:
         ) / len(w_nrg)
 
 
-    def mfcc(self, n_mfcc=5):
-        mfccs = librosa.feature.mfcc(
-            S=self.fft_tex_wnds,
-            frame_length=self.an_wnd_len,
-            hop_length=self.an_wnd_len,
-            n_mfcc=n_mfcc,
-        )
-
-        return np.mean(mfccs, axis=1), np.std(mfccs, axis=1)
-
-
     def _split_tex_wnd(self, tex_wnd, chunk_sz):
+        """
+        Split the texture window to analysis windows of size 'chunk_sz'
+        """
+
         wnds = [ ]
         for i in range(0, len(tex_wnd) - 1, chunk_sz):
             wnds.append(
@@ -131,6 +170,10 @@ class TextureWindow:
         return wnds
 
     def fv(self):
+        """
+        Return the resulting feature vector of this texture window
+        """
+
         mean_centroid, std_centroid = self.centroid()
         mean_rolloff, std_rolloff = self.rolloff()
         mean_flux, std_flux = self.flux()
