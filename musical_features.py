@@ -120,6 +120,16 @@ class TextureWindow:
             [ nrg < avg_nrg for nrg in w_nrg ]
         ) / len(w_nrg)
 
+    def mfcc(self, n_mfcc=5):
+        mfccs = librosa.feature.mfcc(
+            S=self.fft_tex_wnds,
+            frame_length=self.an_wnd_len,
+            hop_length=self.an_wnd_len,
+            n_mfcc=n_mfcc,
+        )
+
+        return np.mean(mfccs, axis=1), np.std(mfccs, axis=1)
+
     def _get_wnd_nrg(self, fft_w):
         """
         Return the total energy of a window
@@ -142,12 +152,12 @@ class TextureWindow:
 
         return wnds
 
-
     def fv(self):
         mean_centroid, std_centroid = self.centroid()
         mean_rolloff, std_rolloff = self.rolloff()
         mean_flux, std_flux = self.flux()
         mean_zc, std_zc = self.zero_crossings()
+        mean_mfcc, std_mfcc = self.mfcc()
         low_energy = self.low_energy()
 
         return np.array([
@@ -155,11 +165,13 @@ class TextureWindow:
             mean_rolloff,
             mean_flux,
             mean_zc,
+            *mean_mfcc,
             std_centroid,
             std_rolloff,
             std_flux,
             std_zc,
-            low_energy
+            *std_mfcc,
+            low_energy,
         ])
 
 
