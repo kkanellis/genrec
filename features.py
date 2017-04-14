@@ -2,33 +2,14 @@ import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 class TextureWindow:
 
     def __init__(self, tex_wnd, fft_len=512, sr=22050):
-        # split texture window to analysis windows
         self.tex_wnd = tex_wnd
-        self.tex_wnds = self._split_tex_wnd(tex_wnd, fft_len)
-
         self.an_wnd_len = fft_len
         self.sr = sr
 
-        #plt.magnitude_spectrum(np.array(windows).ravel(), Fs=sampling_rate)
-        #plt.show()
-
-        """
-        self._fft_tex_wnds = np.array([
-            np.abs(librosa.stft(
-                y=wnd,
-                n_fft=fft_len,
-                hop_length=fft_len+1,
-            )).ravel()
-            for wnd in self.tex_wnds
-        ])
-        #print(self._fft_tex_wnds)
-
-        """
-        # TODO: check FFT coefficients correctness
+        # calc signal spectrum
         self.fft_tex_wnds = np.abs(
             librosa.stft(
                 y=tex_wnd,
@@ -36,13 +17,6 @@ class TextureWindow:
                 hop_length=fft_len,
             )
         )
-        """
-        print(self.fft_tex_wnds.T)
-        print( (self._fft_tex_wnds == self.fft_tex_wnds.T) )
-        plt.figure(1)
-        plt.plot(self.fft_tex_wnds)
-        plt.show()
-        """
 
     def centroid(self):
         """
