@@ -1,24 +1,49 @@
 import librosa
 import numpy as np
+#np.set_printoptions(threshold=np.nan)
 
+from genrec.logger import get_logger
+from genrec.utils import chunks
 
 class FeatureExtractor:
-    def __init__(self):
-        pass
+    def __init__(self, sr=22050, fft_len=512):
+        self.sr = sr
+        self.fft_len = fft_len
+
+        self.logger = get_logger('ft-extractor')
 
     def extract(self, sig):
+        """ Extracts the features from a signal """
         sig = self._preprocess_signal(sig)
 
-        return '0'
-
         # TODO: add more features
-        #return self.timbral(sig)
+        return self.timbral(sig)
 
     def timbral(self, sig):
-        pass
+        """ Extracts the timbral features from a signal """
+        fvs = [ ]
 
+        # 43 analysis windows * 512 samples = 22016 ~= 22050 (--> 1 sec)
+        # NOTE: previous results used 40 analysis windows * 512 samples = 20480 samples
+        for i, tex_wnd in enumerate(chunks(sig, self.sr)):
+            if len(tex_wnd) < self.fft_len:
+                continue
+
+            fv = TimbralFeatures(
+                tex_wnd,
+                sr=self.sr,
+            ).fv()
+
+            if any(np.isnan(fv)):
+                self.logger.warning('NaN value found in fv[{}] = \n{}'.format(i, fv))
+                continue
+
+            fvs.append(fv)
+
+        return np.mean(fvs, axis=0)
 
     def _preprocess_signal(self, sig):
+        """ Strip zero-valued samples at start/end of the signal """
         start = 0
         end = len(sig) - 1
 
@@ -30,8 +55,8 @@ class FeatureExtractor:
         return sig[start:end]
 
 
-class TextureWindow:
-    #methods = ['centroid', 'rolloff', 'flux', 'zero_crossings', 'mfcc', 'low_energy']
+class TimbralFeatures:
+    features = ['centroid', 'rolloff', 'flux', 'zero_crossings', 'mfcc', 'low_energy']
 
     def __init__(self, tex_wnd, fft_len=512, sr=22050):
         self.tex_wnd = tex_wnd
@@ -132,7 +157,7 @@ class TextureWindow:
             n_mfcc=n_mfcc,
         )
 
-        return np.mean(mfccs, axis=1), np.std(mfccs, axis=1)
+        return (*np.mean(mfccs, axis=1), *np.std(mfccs, axis=1))
 
 
     def low_energy(self):
@@ -148,9 +173,9 @@ class TextureWindow:
         ).ravel()
         avg_nrg = np.mean(w_nrg)
 
-        return np.sum(
+        return (np.sum(
             [ nrg < avg_nrg for nrg in w_nrg ]
-        ) / len(w_nrg)
+        ) / len(w_nrg),)
 
 
     def _split_tex_wnd(self, tex_wnd, chunk_sz):
@@ -176,25 +201,11 @@ class TextureWindow:
         """
         Return the resulting feature vector of this texture window
         """
+        features = map(lambda f: getattr(self, f), self.features)
 
-        mean_centroid, std_centroid = self.centroid()
-        mean_rolloff, std_rolloff = self.rolloff()
-        mean_flux, std_flux = self.flux()
-        mean_zc, std_zc = self.zero_crossings()
-        mean_mfcc, std_mfcc = self.mfcc()
-        low_energy = self.low_energy()
+        fv = [ ]
+        for ft in features:
+            fv.extend( ft() )
 
-        return np.array([
-            mean_centroid,
-            mean_rolloff,
-            mean_flux,
-            mean_zc,
-            *mean_mfcc,
-            std_centroid,
-            std_rolloff,
-            std_flux,
-            std_zc,
-            *std_mfcc,
-            low_energy,
-        ])
+        return fv
 
