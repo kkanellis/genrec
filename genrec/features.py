@@ -1,8 +1,37 @@
 import librosa
 import numpy as np
-import matplotlib.pyplot as plt
+
+
+class FeatureExtractor:
+    def __init__(self):
+        pass
+
+    def extract(self, sig):
+        sig = self._preprocess_signal(sig)
+
+        return '0'
+
+        # TODO: add more features
+        #return self.timbral(sig)
+
+    def timbral(self, sig):
+        pass
+
+
+    def _preprocess_signal(self, sig):
+        start = 0
+        end = len(sig) - 1
+
+        while sig[start] == b'0':
+            start += 1
+        while sig[end] == b'0':
+            end -= 1
+
+        return sig[start:end]
+
 
 class TextureWindow:
+    #methods = ['centroid', 'rolloff', 'flux', 'zero_crossings', 'mfcc', 'low_energy']
 
     def __init__(self, tex_wnd, fft_len=512, sr=22050):
         self.tex_wnd = tex_wnd
