@@ -1,7 +1,6 @@
 from copy import copy
 
 import numpy as np
-
 from sklearn.externals import joblib
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold, GridSearchCV
@@ -13,6 +12,7 @@ from sklearn.svm import LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 
 from genrec.logger import get_logger
+from genrec.utils import np_printoptions
 
 class MusicGenreClassifier:
     def __init__(self, genres, data, type='knn', clf_kwargs=None):
@@ -42,18 +42,23 @@ class MusicGenreClassifier:
         self._convert_data(data)
         self.randstate = np.random.RandomState()
 
+        self.logger.info('Classifier: {} (params={})'.format(
+            self.proto_clf.__class__.__name__,
+            clf_kwargs
+        ))
+
     def kfold_test(self, k=10, iters=100):
-        iters = iters // k if iters % k == 0 else iters // k + 1
         n_genres = len(self.genres)
 
         train_acc = np.zeros(iters * k)
         test_acc = np.zeros(iters * k)
         cms = np.zeros((iters, n_genres, n_genres))
-
         clf = copy(self.proto_clf)
+
+        self.logger.info('{}-Fold test ({} iterations)'.format(k, iters))
         for iter in range(iters):
             kf = KFold(n_splits=k, random_state=self.randstate, shuffle=True)
-            cm = np.zeros((10, 10))
+            cm = np.zeros((n_genres, n_genres))
 
             for i, (train_idx, test_idx) in enumerate(kf.split(self.X, self.y)):
                 X_train, X_test = self.X[train_idx], self.X[test_idx]
@@ -66,7 +71,7 @@ class MusicGenreClassifier:
 
                 clf.fit(X_train, y_train)
 
-                idx = iter * iters + i
+                idx = iter * k + i
                 train_acc[idx] = clf.score(X_train, y_train)
                 test_acc[idx] = clf.score(X_test, y_test)
 
@@ -79,14 +84,15 @@ class MusicGenreClassifier:
         mean_cm = np.mean(cms, axis=0)
 
         # Print metrics
-        self.logger.info('Train accuracy: {:5.2f}% +- ({:5.2f}%)'.format(
-            np.mean(train_acc) * 100.0, np.std(train_acc) * 100.0
-        ))
-        self.logger.info('Test accuracy: {:5.2f}% +- ({:5.2f}%)'.format(
-            np.mean(test_acc) * 100.0, np.std(test_acc) * 100.0
-        ))
-        self.logger.info('Genres: {}'.format(self.genres))
-        self.logger.info('Confusion matrix: \n{}'.format(mean_cm))
+        with np_printoptions(precision=3, suppress=True):
+            self.logger.info('Train accuracy: {:5.2f}% +- ({:5.2f}%)'.format(
+                np.mean(train_acc) * 100.0, np.std(train_acc) * 100.0
+            ))
+            self.logger.info('Test accuracy: {:5.2f}% +- ({:5.2f}%)'.format(
+                np.mean(test_acc) * 100.0, np.std(test_acc) * 100.0
+            ))
+            self.logger.info('Genres: {}'.format(self.genres))
+            self.logger.info('Confusion matrix: \n{}'.format(mean_cm))
 
     def load(self, filepath):
         self.proto_clf = joblib.load(filepath)
