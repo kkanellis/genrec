@@ -16,10 +16,11 @@ from genrec.utils import np_printoptions
 
 class MusicGenreClassifier:
     def __init__(self, genres, data, type='knn', clf_kwargs=None):
+        self.logger = get_logger('classifier')
+
         self.genres = genres
         self.m_genres = { genre:i for i, genre in enumerate(genres) }
-
-        self.logger = get_logger('classifier')
+        self.randstate = np.random.RandomState()
 
         self.scaler = None
         if not clf_kwargs:
@@ -40,7 +41,6 @@ class MusicGenreClassifier:
             raise LookupError('Classifier type "{}" is invalid'.format(type))
 
         self._convert_data(data)
-        self.randstate = np.random.RandomState()
 
         self.logger.info('Classifier: {} (params={})'.format(
             self.proto_clf.__class__.__name__,
@@ -58,23 +58,27 @@ class MusicGenreClassifier:
         self.logger.info('{}-Fold test ({} iterations)'.format(k, iters))
         for iter in range(iters):
             kf = KFold(n_splits=k, random_state=self.randstate, shuffle=True)
-            cm = np.zeros((n_genres, n_genres))
+            cm = np.zeros((n_genres, n_genres)) # confusion matrix
 
             for i, (train_idx, test_idx) in enumerate(kf.split(self.X, self.y)):
+                idx = iter * k + i
                 X_train, X_test = self.X[train_idx], self.X[test_idx]
                 y_train, y_test = self.y[train_idx], self.y[test_idx]
 
                 if self.scaler:
+                    # normalize data before training
                     self.scaler.fit(X_train)
                     X_train, X_test = self.scaler.transform(X_train), \
                                         self.scaler.transform(X_test)
 
-                clf.fit(X_train, y_train)
+                clf.fit(X_train, y=y_train)   # train
 
-                idx = iter * k + i
-                train_acc[idx] = clf.score(X_train, y_train)
-                test_acc[idx] = clf.score(X_test, y_test)
+                # accuracy
+                train_acc[idx] = clf.score(X_train, y=y_train)
+                test_acc[idx] = clf.score(X_test, y=y_test)
 
+
+                # confusion matrix
                 y_pred = clf.predict(X_test)
                 cm += confusion_matrix(y_test, y_pred)
 
@@ -93,6 +97,7 @@ class MusicGenreClassifier:
             ))
             self.logger.info('Genres: {}'.format(self.genres))
             self.logger.info('Confusion matrix: \n{}'.format(mean_cm))
+
 
     def load(self, filepath):
         self.proto_clf = joblib.load(filepath)
