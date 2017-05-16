@@ -27,6 +27,8 @@ COLORS = {
 
 logging.captureWarnings(True)
 
+loggers = { }   # created loggers
+
 def get_logger(name, terminal_log_level='DEBUG', file_log_level=None,
                     log_dir=None, include_time=False, include_date=False):
     """Create a custom logger with date and time
@@ -48,6 +50,10 @@ def get_logger(name, terminal_log_level='DEBUG', file_log_level=None,
     if file_log_level and file_log_level not in LEVEL_DICT:
         raise ValueError('Invalid file log level defined [{}]'
                             .format(file_log_level))
+
+    # Check if already created
+    if name in loggers:
+        return loggers[name]
 
     # Create logger object
     logger = logging.getLogger(name)
@@ -99,6 +105,9 @@ def get_logger(name, terminal_log_level='DEBUG', file_log_level=None,
         console_formatter = ColoredFormatter(log_format, datetime_format)
         ch.setFormatter(console_formatter)
         logger.addHandler(ch)
+
+    # Save logger obj for future use
+    loggers[name] = logger
 
     return logger
 
