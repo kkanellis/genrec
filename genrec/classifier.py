@@ -21,10 +21,10 @@ class MusicGenreClassifier:
         self.genres = genres
         self.m_genres = { genre:i for i, genre in enumerate(genres) }
         self.randstate = np.random.RandomState()
+        self.scaler = StandardScaler()
 
-        self.scaler = None
-        if not clf_kwargs:
-            clf_kwargs = { }
+        clf_kwargs = { } if not clf_kwargs else clf_kwargs
+
 
         if type == 'knn':
             self.proto_clf = KNeighborsClassifier(**clf_kwargs)
@@ -36,7 +36,6 @@ class MusicGenreClassifier:
             self.proto_clf = GaussianNB(**clf_kwargs)
         elif type == 'mlp':
             self.proto_clf = MLPClassifier(**clf_kwargs)
-            self.scaler = StandardScaler()
         else:
             raise LookupError('Classifier type "{}" is invalid'.format(type))
 
@@ -65,18 +64,16 @@ class MusicGenreClassifier:
                 X_train, X_test = self.X[train_idx], self.X[test_idx]
                 y_train, y_test = self.y[train_idx], self.y[test_idx]
 
-                if self.scaler:
-                    # normalize data before training
-                    self.scaler.fit(X_train)
-                    X_train, X_test = self.scaler.transform(X_train), \
-                                        self.scaler.transform(X_test)
+                # normalize data before training
+                self.scaler.fit(X_train)
+                X_train, X_test = self.scaler.transform(X_train), \
+                                    self.scaler.transform(X_test)
 
                 clf.fit(X_train, y=y_train)   # train
 
                 # accuracy
                 train_acc[idx] = clf.score(X_train, y=y_train)
                 test_acc[idx] = clf.score(X_test, y=y_test)
-
 
                 # confusion matrix
                 y_pred = clf.predict(X_test)
