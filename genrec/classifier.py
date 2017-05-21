@@ -1,14 +1,15 @@
 from copy import copy
 
 import numpy as np
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.externals import joblib
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import KFold, GridSearchCV
+from sklearn.model_selection import KFold
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from genrec.logger import get_logger
@@ -24,18 +25,21 @@ class MusicGenreClassifier:
         self.scaler = StandardScaler()
 
         clf_kwargs = { } if not clf_kwargs else clf_kwargs
-
+        if type in ['svm', 'mlp']:
+            clf_kwargs['random_state'] = self.randstate
 
         if type == 'knn':
             self.proto_clf = KNeighborsClassifier(**clf_kwargs)
         elif type == 'svm':
-            self.proto_clf = LinearSVC(**clf_kwargs)
+            self.proto_clf = SVC(**clf_kwargs)
         elif type == 'dtree':
             self.proto_clf = DecisionTreeClassifier(**clf_kwargs)
         elif type == 'gnb':
             self.proto_clf = GaussianNB(**clf_kwargs)
         elif type == 'mlp':
             self.proto_clf = MLPClassifier(**clf_kwargs)
+        elif type == 'ada':
+            self.proto_clf = AdaBoostClassifier(**clf_kwargs)
         else:
             raise LookupError('Classifier type "{}" is invalid'.format(type))
 
