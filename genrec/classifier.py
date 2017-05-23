@@ -1,4 +1,5 @@
 from copy import copy
+from time import perf_counter
 
 import numpy as np
 from sklearn.ensemble import AdaBoostClassifier
@@ -13,11 +14,12 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from genrec.logger import get_logger
-from genrec.utils import np_printoptions
+from genrec.utils import np_printoptions, plot_confusion_matrix
 
 class MusicGenreClassifier:
-    def __init__(self, genres, data, type='knn', clf_kwargs=None):
+    def __init__(self, genres, data, type='knn', name='', clf_kwargs=None):
         self.logger = get_logger('classifier')
+        self.display_name = name
 
         self.genres = genres
         self.m_genres = { genre:i for i, genre in enumerate(genres) }
@@ -50,7 +52,7 @@ class MusicGenreClassifier:
             clf_kwargs
         ))
 
-    def kfold_test(self, k=10, iters=100):
+    def kfold_test(self, k=10, iters=100, plot_cm=False):
         n_genres = len(self.genres)
 
         train_acc = np.zeros(iters * k)
@@ -59,6 +61,7 @@ class MusicGenreClassifier:
         clf = copy(self.proto_clf)
 
         self.logger.info('{}-Fold test ({} iterations)'.format(k, iters))
+        start = perf_counter()
         for iter in range(iters):
             kf = KFold(n_splits=k, random_state=self.randstate, shuffle=True)
             cm = np.zeros((n_genres, n_genres)) # confusion matrix
@@ -85,6 +88,9 @@ class MusicGenreClassifier:
 
             cms[iter,:,:] = cm
 
+        elapsed = perf_counter() - start
+        self.logger.info('Elapsed {:5.3f} secs ({:5.3f} secs per iter)'.format(elapsed, elapsed / (iters * k)))
+
         # Calculate avg confusion matrix
         mean_cm = np.mean(cms, axis=0)
 
@@ -98,6 +104,13 @@ class MusicGenreClassifier:
             ))
             self.logger.info('Genres: {}'.format(self.genres))
             self.logger.info('Confusion matrix: \n{}'.format(mean_cm))
+
+        # Plot confusion matrix
+        if plot_cm:
+            plot_confusion_matrix(
+                cm, self.display_name,
+                self.proto_clf.__class__.__name__
+            )
 
 
     def load(self, filepath):
