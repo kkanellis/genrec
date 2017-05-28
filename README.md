@@ -1,2 +1,4 @@
-# genre-classification
-Automatic music genre classification using k-NN/SVN/NN
+# genrec
+
+Automatic music genre recognition using machine learning
+
