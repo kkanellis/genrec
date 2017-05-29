@@ -4,6 +4,7 @@ from time import perf_counter
 import numpy as np
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.externals import joblib
+from sklearn.linear_model import Perceptron
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
 from sklearn.naive_bayes import GaussianNB
@@ -38,6 +39,8 @@ class MusicGenreClassifier:
             self.proto_clf = DecisionTreeClassifier(**clf_kwargs)
         elif type == 'gnb':
             self.proto_clf = GaussianNB(**clf_kwargs)
+        elif type == 'perc':
+            self.proto_clf = Perceptron(**clf_kwargs)
         elif type == 'mlp':
             self.proto_clf = MLPClassifier(**clf_kwargs)
         elif type == 'ada':
