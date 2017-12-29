@@ -17,36 +17,40 @@ from sklearn.tree import DecisionTreeClassifier
 from genrec.logger import get_logger
 from genrec.utils import np_printoptions, plot_confusion_matrix
 
-class MusicGenreClassifier:
-    def __init__(self, genres, data, type='knn', name='', clf_kwargs=None):
-        self.logger = get_logger('classifier')
+class ClassifierBenchmark:
+    supported_classifiers = {
+        'knn': KNeighborsClassifier,
+        'svm': SVC,
+        'dtree': DecisionTreeClassifier,
+        'gnb': GaussianNB,
+        'perc': Perceptron,
+        'mlp': MLPClassifier,
+        'ada': AdaBoostClassifier,
+    }
+
+    def __init__(self, type, genres, data, name=None, clf_kwargs=None):
+        self.logger = get_logger('benchmark')
+
+        if not name:
+            name = 'Unamed classifier'
         self.display_name = name
 
-        self.genres = genres
-        self.m_genres = { genre:i for i, genre in enumerate(genres) }
-        self.randstate = np.random.RandomState()
-        self.scaler = StandardScaler()
+        if type not in self.supported_classifiers:
+            raise LookupError("Type '{}' classifier not supported".format(type))
 
-        clf_kwargs = { } if not clf_kwargs else clf_kwargs
+        if not clf_kwargs:
+            clf_kwargs = { }
+
+        self.randstate = np.random.RandomState()
         if type in ['svm', 'mlp']:
             clf_kwargs['random_state'] = self.randstate
 
-        if type == 'knn':
-            self.proto_clf = KNeighborsClassifier(**clf_kwargs)
-        elif type == 'svm':
-            self.proto_clf = SVC(**clf_kwargs)
-        elif type == 'dtree':
-            self.proto_clf = DecisionTreeClassifier(**clf_kwargs)
-        elif type == 'gnb':
-            self.proto_clf = GaussianNB(**clf_kwargs)
-        elif type == 'perc':
-            self.proto_clf = Perceptron(**clf_kwargs)
-        elif type == 'mlp':
-            self.proto_clf = MLPClassifier(**clf_kwargs)
-        elif type == 'ada':
-            self.proto_clf = AdaBoostClassifier(**clf_kwargs)
-        else:
-            raise LookupError('Classifier type "{}" is invalid'.format(type))
+        # Initialize classifier
+        self.proto_clf = self.supported_classifiers[type](**clf_kwargs)
+
+        self.genres = genres
+        self.m_genres = { genre:i for i, genre in enumerate(genres) }
+        self.scaler = StandardScaler()
 
         self._convert_data(data)
 
@@ -61,7 +65,7 @@ class MusicGenreClassifier:
         train_acc = np.zeros(iters * k)
         test_acc = np.zeros(iters * k)
         cms = np.zeros((iters, n_genres, n_genres))
-        clf = copy(self.proto_clf)
+        clf = self.proto_clf
 
         self.logger.info('{}-Fold test ({} iterations)'.format(k, iters))
         start = perf_counter()
@@ -120,7 +124,7 @@ class MusicGenreClassifier:
         self.proto_clf = joblib.load(filepath)
 
     def save(self, filepath):
-        joblib.sump(self.proto_clf, filepath)
+        joblib.dump(self.proto_clf, filepath)
 
     def _convert_data(self, data):
         """ Converts data from dataset to sklearn format """
