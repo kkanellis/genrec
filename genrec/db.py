@@ -5,7 +5,6 @@ from pathlib import Path
 import numpy as np
 import librosa
 
-
 from genrec.logger import get_logger
 from genrec.utils import JSONEncoderObj
 
@@ -38,8 +37,8 @@ class Dataset:
         for filepath, genre in self._iter_all_files(dir, **kwargs):
             self.logger.debug('Processing "{}"...'.format(filepath))
 
-            aufile, _ = librosa.load( str(filepath) )
-            fv = self.ft_extractor.extract(aufile)
+            aufile, aufile_sr = librosa.load( str(filepath) )
+            fv = self.ft_extractor.extract_fv(aufile, sr=aufile_sr)
 
             files[genre].append( AudioFile(filepath, genre, fv) )
 
