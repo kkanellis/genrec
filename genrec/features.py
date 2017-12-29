@@ -7,48 +7,60 @@ from genrec.utils import chunks
 
 class FeatureExtractor:
     def __init__(self, sr=22050, fft_len=512):
-        self.sr = sr
+        self.target_sr = sr
         self.fft_len = fft_len
 
         self.logger = get_logger('ft-extractor')
 
-    def extract(self, sig):
+    def extract_fv(self, sig, sr=22050):
         """ Extracts the features from a signal """
-        sig = self._preprocess_signal(sig)
+        sig = self._preprocess_signal(sig, sr)
 
-        # TODO: add more features
-        return self.timbral(sig)
+        # Keep only not silent windows
+        fvs = [ fv for fv in self.timbral(sig) if fv ]
+        return np.mean(fvs, axis=0)
+
+    def extract_fvs(self, sig, sr=22050):
+        """ Extracts the features from a signal every 1 second """
+        sig = self._preprocess_signal(sig, sr)
+        yield from self.timbral(sig)
 
     def timbral(self, sig):
         """ Extracts the timbral features from a signal """
-        fvs = [ ]
-
         # 43 analysis windows * 512 samples = 22016 ~= 22050 (--> 1 sec)
         # NOTE: previous results used 40 analysis windows * 512 samples = 20480 samples
-        for i, tex_wnd in enumerate(chunks(sig, self.sr)):
+        for i, tex_wnd in enumerate(chunks(sig, self.target_sr)):
             if len(tex_wnd) < self.fft_len:
                 continue
 
             fv = TimbralFeatures(
                 tex_wnd,
-                sr=self.sr,
+                sr=self.target_sr,
             ).fv()
 
             if any(np.isnan(fv)):
                 self.logger.warning('NaN value found in fv[{}] = \n{}'.format(i, fv))
+                yield [ ]
                 continue
 
-            fvs.append(fv)
+            yield fv
 
-        return np.mean(fvs, axis=0)
+    def _preprocess_signal(self, sig, sr):
+        if sr != self.target_sr:
+            # resample to target sampling rate
+            # NOTE: scale=True so total energy is ~same for both signals
+            sig = librosa.resample(sig, sr, self.target_sr, scale=True)
 
-    def _preprocess_signal(self, sig):
+        return self._strip_signal(sig)
+
+    def _strip_signal(self, sig):
         """ Strip zero-valued samples at start/end of the signal """
-        start = 0
-        end = len(sig) - 1
 
+        start = 0
         while sig[start] == b'0':
             start += 1
+
+        end = len(sig) - 1
         while sig[end] == b'0':
             end -= 1
 
@@ -177,25 +189,6 @@ class TimbralFeatures:
             [ nrg < avg_nrg for nrg in w_nrg ]
         ) / len(w_nrg),)
 
-
-    def _split_tex_wnd(self, tex_wnd, chunk_sz):
-        """
-        Split the texture window to analysis windows of size 'chunk_sz'
-        """
-
-        wnds = [ ]
-        for i in range(0, len(tex_wnd) - 1, chunk_sz):
-            wnds.append(
-                tex_wnd[i:i+chunk_sz]
-            )
-
-        # last wnd is smaller
-        if len(wnds[-1]) < chunk_sz:
-            wnds[-1] = np.array(
-                list(wnds[-1]) + (chunk_sz - len(wnds[-1])) * [0.0]
-            )
-
-        return wnds
 
     def fv(self):
         """
