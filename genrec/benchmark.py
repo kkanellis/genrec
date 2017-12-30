@@ -2,62 +2,26 @@ from copy import copy
 from time import perf_counter
 
 import numpy as np
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.externals import joblib
-from sklearn.linear_model import Perceptron
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
-from sklearn.naive_bayes import GaussianNB
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.tree import DecisionTreeClassifier
 
 from genrec.logger import get_logger
 from genrec.utils import np_printoptions, plot_confusion_matrix
 
 class ClassifierBenchmark:
-    supported_classifiers = {
-        'knn': KNeighborsClassifier,
-        'svm': SVC,
-        'dtree': DecisionTreeClassifier,
-        'gnb': GaussianNB,
-        'perc': Perceptron,
-        'mlp': MLPClassifier,
-        'ada': AdaBoostClassifier,
-    }
+    """ Benchmark a classifier with specific data """
 
-    def __init__(self, type, genres, data, name=None, clf_kwargs=None):
+    def __init__(self, clf, genres, data, display_name):
         self.logger = get_logger('benchmark')
 
-        if not name:
-            name = 'Unamed classifier'
-        self.display_name = name
-
-        if type not in self.supported_classifiers:
-            raise LookupError("Type '{}' classifier not supported".format(type))
-
-        if not clf_kwargs:
-            clf_kwargs = { }
-
-        self.randstate = np.random.RandomState()
-        if type in ['svm', 'mlp']:
-            clf_kwargs['random_state'] = self.randstate
-
-        # Initialize classifier
-        self.proto_clf = self.supported_classifiers[type](**clf_kwargs)
-
+        self.display_name = display_name
+        self.clf = clf
         self.genres = genres
         self.m_genres = { genre:i for i, genre in enumerate(genres) }
         self.scaler = StandardScaler()
 
         self._convert_data(data)
-
-        self.logger.info('Classifier: {} (params={})'.format(
-            self.proto_clf.__class__.__name__,
-            clf_kwargs
-        ))
 
     def kfold_test(self, k=10, iters=100, plot_cm=False):
         n_genres = len(self.genres)
@@ -65,12 +29,12 @@ class ClassifierBenchmark:
         train_acc = np.zeros(iters * k)
         test_acc = np.zeros(iters * k)
         cms = np.zeros((iters, n_genres, n_genres))
-        clf = self.proto_clf
+        clf = self.clf
 
         self.logger.info('{}-Fold test ({} iterations)'.format(k, iters))
         start = perf_counter()
         for iter in range(iters):
-            kf = KFold(n_splits=k, random_state=self.randstate, shuffle=True)
+            kf = KFold(n_splits=k, shuffle=True)
             cm = np.zeros((n_genres, n_genres)) # confusion matrix
 
             for i, (train_idx, test_idx) in enumerate(kf.split(self.X, self.y)):
@@ -116,15 +80,12 @@ class ClassifierBenchmark:
         if plot_cm:
             plot_confusion_matrix(
                 cm, self.display_name,
-                self.proto_clf.__class__.__name__
+                self.clf.__class__.__name__
             )
 
-
-    def load(self, filepath):
-        self.proto_clf = joblib.load(filepath)
-
-    def save(self, filepath):
-        joblib.dump(self.proto_clf, filepath)
+    def get_classifier_obj(self):
+        """ Returns the last classifier object used """
+        return self.clf
 
     def _convert_data(self, data):
         """ Converts data from dataset to sklearn format """
