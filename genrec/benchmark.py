@@ -21,7 +21,7 @@ class ClassifierBenchmark:
         self.m_genres = { genre:i for i, genre in enumerate(genres) }
         self.scaler = StandardScaler()
 
-        self._convert_data(data)
+        self.X, self.y = data
 
     def kfold_test(self, k=10, iters=100, plot_cm=False):
         n_genres = len(self.genres)
@@ -87,14 +87,4 @@ class ClassifierBenchmark:
         """ Returns the last classifier object used """
         return self.clf
 
-    def _convert_data(self, data):
-        """ Converts data from dataset to sklearn format """
-        X, y = [ ], [ ]
-        for genre, aufiles in data.items():
-            for aufile in aufiles:
-                X.append( aufile.fv )
-                y.append( self.m_genres[genre] )
-
-        self.X = np.array(X)
-        self.y = np.array(y)
 

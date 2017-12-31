@@ -69,6 +69,16 @@ class Dataset:
     def get_data(self):
         return self.files
 
+    def get_data_as_arrays(self):
+        """ Converts data from dataset to numpy format """
+        X, y = [ ], [ ]
+        for genre, aufiles in self.files.items():
+            for aufile in aufiles:
+                X.append( aufile.fv )
+                y.append( genre )
+
+        return np.array(X), np.array(y)
+
     def save(self, filepath):
         """ Export dataset to file """
         with open(filepath, 'w') as f:

@@ -37,7 +37,7 @@ def run_tests():
     # If already have saved the timbral features
     ds.load_from_file('./db/timbral.json')
 
-    data = ds.get_data()
+    data = ds.get_data_as_arrays()
     for clf_params, display_name in testcases:
         # Initialize classifier
         clf_params['dataset'] = 'gtzan'
@@ -45,8 +45,6 @@ def run_tests():
 
         bench = ClassifierBenchmark(clf, GENRES, data, display_name)
         bench.kfold_test(iters=10, plot_cm=False)
-
-        #clf.to_file(f'clf_obj/{clf_params["name"]}');
 
 if __name__ == '__main__':
     run_tests()
