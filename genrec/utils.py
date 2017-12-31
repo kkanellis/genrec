@@ -50,7 +50,7 @@ def plot_confusion_matrix(cm, plot_title, filename, genres=None):
     pylab.ylabel('Correct class', fontsize=12)
     pylab.grid(False)
     #pylab.show()
-    pylab.savefig(os.path.join(PLOTS_DIR, "cm_%s.eps" % filename), bbox_inches="tight")
+    #pylab.savefig(os.path.join(PLOTS_DIR, "cm_%s.eps" % filename), bbox_inches="tight")
 
 
 

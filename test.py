@@ -5,14 +5,14 @@ from genrec.benchmark import ClassifierBenchmark
 from genrec.classifier import Classifier
 from genrec.config import *
 from genrec.db import Dataset
-from genrec.features import FeatureExtractor, TimbralFeatures
+from genrec.features import FeatureExtractor
 
 # Testcases -> list of (classifier parameters, display name) tuples
 testcases = [
     ({'type': 'knn', 'clf_kwargs': { 'n_neighbors': 3}, 'name': 'kNN_3' }, 'kNN-3'),
     ({'type': 'knn', 'clf_kwargs': { 'n_neighbors': 5}, 'name': 'kNN_5' }, 'kNN_5'),
     ({'type': 'knn', 'clf_kwargs': { 'n_neighbors': 7}, 'name': 'kNN_7' }, 'kNN_7'),
-    ({'type': 'knn', 'clf_kwargs': { 'n_neighbors': 5}, 'name': 'kNN_9' }, 'kNN_9'),
+    ({'type': 'knn', 'clf_kwargs': { 'n_neighbors': 9}, 'name': 'kNN_9' }, 'kNN_9'),
     ({'type': 'svm', 'clf_kwargs': { 'kernel': 'linear', 'cache_size': 2000 }, 'name': 'SVM_Linear' }, 'Linear Kernel SVM'),
     ({'type': 'svm', 'clf_kwargs': { 'kernel': 'rbf', 'cache_size': 2000, 'gamma': 0.15 }, 'name': 'SVM_RBF' }, 'RBF Kernel SVM'),
     ({'type': 'dtree', 'clf_kwargs': { 'criterion': 'entropy'}, 'name': 'Decision_Tree' }, 'Decision Tree'),

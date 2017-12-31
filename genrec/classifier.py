@@ -64,7 +64,7 @@ class Classifier:
         ))
 
     def __getattr__(self, name):
-        """ Delegate method calls to sklearn's classifier object """
+        """ Delegate class method calls to sklearn's classifier object """
         return getattr(self.clf_obj, name)
 
     @classmethod
