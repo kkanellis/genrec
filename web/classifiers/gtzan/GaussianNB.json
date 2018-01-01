@@ -1,0 +1,7 @@
+{
+    "name": "GaussianNB",
+    "type": "gnb",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {}
+}

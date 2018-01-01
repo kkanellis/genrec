@@ -1,0 +1,11 @@
+{
+    "name": "MLP_1L",
+    "type": "mlp",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "hidden_layer_sizes": [
+            100
+        ]
+    }
+}

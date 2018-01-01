@@ -1,0 +1,10 @@
+{
+    "name": "SVM_Linear",
+    "type": "svm",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "kernel": "linear",
+        "cache_size": 2000
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "name": "AdaBoost",
+    "type": "ada",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "n_estimators": 50,
+        "learning_rate": 0.5
+    }
+}

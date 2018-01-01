@@ -1,0 +1,9 @@
+{
+    "name": "Decision_Tree",
+    "type": "dtree",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "criterion": "entropy"
+    }
+}

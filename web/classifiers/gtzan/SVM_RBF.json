@@ -1,0 +1,11 @@
+{
+    "name": "SVM_RBF",
+    "type": "svm",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "kernel": "rbf",
+        "cache_size": 2000,
+        "gamma": 0.15
+    }
+}
