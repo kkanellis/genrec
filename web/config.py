@@ -1,0 +1,3 @@
+
+AVAILABLE_DATASETS = [ 'gtzan' ]
+
