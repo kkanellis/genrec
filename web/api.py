@@ -1,5 +1,7 @@
 from web.classifiers import get_dataset_models, _get_valid_dirs
+
 import os.path
+import json
 
 class GenrecAPI:
     def __init__(self):
@@ -16,6 +18,7 @@ class GenrecAPI:
         Returns:
             available datasets to be chosen as a training set
         """
+
         exclude_prefixes = ('__', '.')  # Exclusion prefixes for hidden subdirs
         for datasetPath, _ in get_dataset_models(): # Find path of datasets
             pass
@@ -27,9 +30,12 @@ class GenrecAPI:
                        for dirName in dirNames
                        if not dirName.startswith(exclude_prefixes)]
             break
+        # Now, under 'dirNames', we have an array of our datasets
 
-        print(dirNames)
-        pass
+        datasets_dict = { "datasets": dirNames }; # Build Dictionary
+        datasets_JSON = json.dumps(datasets_dict) # Serialize to JSON
+
+        return datasets_JSON
 
     def get_available_classifiers(self, dataset):
         pass
@@ -37,6 +43,7 @@ class GenrecAPI:
     def predict_song(self, filepath):
         pass
 
+# Test function only used in the development environment
 def main():
 
     testObject = GenrecAPI()
