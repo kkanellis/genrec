@@ -5,9 +5,9 @@ import json
 
 class GenrecAPI:
     def __init__(self):
-        '''Constructor Method for each object of GenrecAPI Class
+        ''' Constructor Method for each object of GenrecAPI Class
 
-        Constructs `object.models_dict`
+            Constructs `object.models_dict`
         '''
 
         dict = {} # Init the Dictionary
@@ -31,34 +31,25 @@ class GenrecAPI:
                 dict[dataset]["classifiers"][classifier.name] = classifier
 
         self.models_dict = dict
+        # TODO: Test for more than 1 dataset (Spotify, 1MillionSongs, etc)
         print(self.models_dict) # Test
 
         pass
 
     def get_available_datasets(self):
-        """Get available datasets for training like GTZAN, Spotify
+        """ Get available datasets for training like GTZAN, Spotify
+            from the corresponding class member of the object
         """
 
-        '''
-        exclude_prefixes = ('__', '.')  # Exclusion prefixes for hidden subdirs
-        for dataset, _ in get_dataset_models(): # Find path of datasets
-            print(dataset)
-
-        '''
-        '''exclude_prefixes = ('__', '.')  # exclusion prefixes
-        for _, dirNames, _ in os.walk(datasetPath):
-            # Exclude all dirs starting with exclude_prefixes
-            dirNames[:] = [dirName
-                       for dirName in dirNames
-                       if not dirName.startswith(exclude_prefixes)]
-            break
-        # Now, under 'dirNames', we have an array of our datasets
-
-        datasets_dict = { "datasets": dirNames }; # Build Dictionary
+        # get names of datasets
+        #datasetNames =
+        #list(self.models_dict) returns ['gtzan'],
+        #*dict returns gtzan
+        datasets_dict = { "datasets": datasetNames }; # Build Dictionary
         datasets_JSON = json.dumps(datasets_dict) # Serialize to JSON
 
         return datasets_JSON
-        '''
+
         pass
     def get_available_classifiers(self, dataset):
         pass
