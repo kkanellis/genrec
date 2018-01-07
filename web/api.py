@@ -1,6 +1,5 @@
 from web.classifiers import get_dataset_models
 
-import os.path
 import json
 
 class GenrecAPI:
@@ -34,8 +33,6 @@ class GenrecAPI:
         # TODO: Test for more than 1 dataset (Spotify, 1MillionSongs, etc)
         #print(self.models_dict) # Test
 
-        pass
-
     def get_available_datasets(self):
         """ Get available datasets for training like GTZAN, Spotify
             from the corresponding class member of the object
@@ -55,7 +52,35 @@ class GenrecAPI:
         return datasets_JSON
 
     def get_available_classifiers(self, dataset):
-        pass
+        '''
+            Args:
+                dataset(as string)
+            Returns:
+                available classifiers(as a dictionary)
+        '''
+        # Init the dictionary that will be returned
+        dict1 = {dataset: {"classifiers":{}}}
+
+        for datasetName, (classifiers, _, _) in get_dataset_models():
+            # Only for the specific dataset given:
+            if (datasetName == dataset):
+                # Loop through each classifiers
+                for classifier in classifiers: # TODO: Exclude 'dataset' key-value
+                    metadata_fields = classifier.MANDATORY_CLASSIFIER_METADATA_FIELDS[:2] + \
+                        list(map(lambda x: x[0], classifier.OPTIONAL_CLASSIFIER_METADATA_FIELDS))
+
+                    #print (metadata_fields)
+                    # Build a dictionary out of the classifier's name
+                    classifierName = getattr(classifier, 'name')
+                    dict2 = { classifierName: {}}
+
+                    # Merge the 3 dictionaries
+                    dict3 = { k: getattr(classifier, k) for k in metadata_fields[1:] } # Exclude 'name'
+                    dict2[classifierName].update(dict3)
+                    dict1[dataset]['classifiers'].update(dict2)
+
+        #print(dict1)
+        return dict1
 
     def predict_song(self, filepath):
         pass
@@ -64,7 +89,7 @@ class GenrecAPI:
 def main():
 
     testObject = GenrecAPI()
-    testObject.get_available_datasets()
+    testObject.get_available_classifiers("gtzan")
     #testObject.get_available_datasets()
     pass
 
