@@ -1,29 +1,51 @@
-from web.classifiers import get_dataset_models, _get_valid_dirs
+from web.classifiers import get_dataset_models
 
 import os.path
 import json
 
 class GenrecAPI:
     def __init__(self):
+        '''Constructor Method for each object of GenrecAPI Class
+
+        Constructs `object.models_dict`
+        '''
+
+        dict = {} # Init the Dictionary
+
+        # For each dataset
+        for dataset, (classifiers, encoderObj, scalerObj) in get_dataset_models():
+
+            # Init object for the dictionary
+            dictObject = {
+                dataset: {
+                    "classifiers": {},
+                    "scaler": scalerObj,
+                    "encoder": encoderObj
+                }
+            }
+
+            dict.update(dictObject) # Assign it to the the dictionary
+
+            # Populate the classifiers as 'name: object'
+            for classifier in classifiers:
+                dict[dataset]["classifiers"][classifier.name] = classifier
+
+        self.models_dict = dict
+        print(self.models_dict) # Test
+
         pass
 
     def get_available_datasets(self):
         """Get available datasets for training like GTZAN, Spotify
-
-        Uses the 'get_dataset_models' function from 'web.classifiers'
-        (Another way to do this is by iterating over the 'config.py' file)
-
-        Args:
-            self: object of the GenrecAPI Class
-        Returns:
-            available datasets to be chosen as a training set
         """
 
+        '''
         exclude_prefixes = ('__', '.')  # Exclusion prefixes for hidden subdirs
-        for datasetPath, _ in get_dataset_models(): # Find path of datasets
-            pass
+        for dataset, _ in get_dataset_models(): # Find path of datasets
+            print(dataset)
 
-        exclude_prefixes = ('__', '.')  # exclusion prefixes
+        '''
+        '''exclude_prefixes = ('__', '.')  # exclusion prefixes
         for _, dirNames, _ in os.walk(datasetPath):
             # Exclude all dirs starting with exclude_prefixes
             dirNames[:] = [dirName
@@ -36,7 +58,8 @@ class GenrecAPI:
         datasets_JSON = json.dumps(datasets_dict) # Serialize to JSON
 
         return datasets_JSON
-
+        '''
+        pass
     def get_available_classifiers(self, dataset):
         pass
 
@@ -47,7 +70,7 @@ class GenrecAPI:
 def main():
 
     testObject = GenrecAPI()
-    testObject.get_available_datasets()
+    #testObject.get_available_datasets()
     pass
 
 main()
