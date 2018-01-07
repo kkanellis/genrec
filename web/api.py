@@ -32,7 +32,7 @@ class GenrecAPI:
 
         self.models_dict = dict
         # TODO: Test for more than 1 dataset (Spotify, 1MillionSongs, etc)
-        print(self.models_dict) # Test
+        #print(self.models_dict) # Test
 
         pass
 
@@ -41,16 +41,19 @@ class GenrecAPI:
             from the corresponding class member of the object
         """
 
-        # TODO: get names of datasets
-        #datasetNames =
-        #list(self.models_dict) returns ['gtzan'],
-        #*dict returns gtzan
-        datasets_dict = { "datasets": datasetNames }; # Build Dictionary
-        datasets_JSON = json.dumps(datasets_dict) # Serialize to JSON
+        # Two ways:
+        #   -1- list(self.models_dict): returns ['gtzan'],
+        #   -2- *dict: returns gtzan
+
+        datasetNames = list(self.models_dict) # Get names from class member
+        datasets_dict = { "datasets": datasetNames }; # Build mini-dictionary
+        datasets_JSON = json.dumps(datasets_dict) # Serialize it to JSON
+
+        #print(datasets_dict)
+        #print(datasets_JSON)
 
         return datasets_JSON
 
-        pass
     def get_available_classifiers(self, dataset):
         pass
 
@@ -61,6 +64,7 @@ class GenrecAPI:
 def main():
 
     testObject = GenrecAPI()
+    testObject.get_available_datasets()
     #testObject.get_available_datasets()
     pass
 
