@@ -21,7 +21,7 @@ def _get_valid_dirs():
     ]
 
     yield from map(
-        lambda entry: entry.path,
+        lambda entry: entry,
         scandir_filtered(dirpath, filters)
     )
 
@@ -41,8 +41,8 @@ def _get_classifiers(dir):
         yield Classifier.from_file(entry.path)
 
 def get_dataset_models():
-    for dirpath in _get_valid_dirs():
-        dataset = os.path.dirname(dirpath)
+    for direntry in _get_valid_dirs():
+        dataset, dirpath = direntry.name, direntry.path
 
         clf_encoder_path = os.path.join(dirpath, 'clf_encoder')
         clf_scaler_path = os.path.join(dirpath, 'clf_scaler')
