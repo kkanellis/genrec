@@ -41,7 +41,7 @@ class GenrecAPI:
             from the corresponding class member of the object
         """
 
-        # get names of datasets
+        # TODO: get names of datasets
         #datasetNames =
         #list(self.models_dict) returns ['gtzan'],
         #*dict returns gtzan
