@@ -36,6 +36,9 @@ class GenrecAPI:
     def get_available_datasets(self):
         """ Get available datasets for training like GTZAN, Spotify
             from the corresponding class member of the object
+
+            Returns:
+                available datasets (dictionary) as JSON
         """
 
         # Two ways:
@@ -56,31 +59,33 @@ class GenrecAPI:
             Args:
                 dataset(as string)
             Returns:
-                available classifiers(as a dictionary)
+                available classifiers (dictionary) as JSON
         '''
         # Init the dictionary that will be returned
         dict1 = {dataset: {"classifiers":{}}}
 
-        for datasetName, (classifiers, _, _) in get_dataset_models():
-            # Only for the specific dataset given:
-            if (datasetName == dataset):
-                # Loop through each classifiers
-                for classifier in classifiers: # TODO: Exclude 'dataset' key-value
-                    metadata_fields = classifier.MANDATORY_CLASSIFIER_METADATA_FIELDS[:2] + \
-                        list(map(lambda x: x[0], classifier.OPTIONAL_CLASSIFIER_METADATA_FIELDS))
+        dictToSearch = self.models_dict[dataset]["classifiers"]
+        for classifierName in dictToSearch:
 
-                    #print (metadata_fields)
-                    # Build a dictionary out of the classifier's name
-                    classifierName = getattr(classifier, 'name')
-                    dict2 = { classifierName: {}}
+            # Get value of key/classifierName
+            classifierObject = dictToSearch[classifierName]
 
-                    # Merge the 3 dictionaries
-                    dict3 = { k: getattr(classifier, k) for k in metadata_fields[1:] } # Exclude 'name'
-                    dict2[classifierName].update(dict3)
-                    dict1[dataset]['classifiers'].update(dict2)
+            # Get specific metadata fields
+            metadata_fields = classifierObject.MANDATORY_CLASSIFIER_METADATA_FIELDS[:2] + \
+                list(map(lambda x: x[0], classifierObject.OPTIONAL_CLASSIFIER_METADATA_FIELDS))
+
+            # Build a dictionary out of the classifier's name
+            classifierName = getattr(classifierObject, 'name')
+            dict2 = { classifierName: {}}
+
+            # Merge the 3 dictionaries
+            dict3 = { k: getattr(classifierObject, k) for k in metadata_fields[1:] } # Exclude 'name'
+            dict2[classifierName].update(dict3)
+            dict1[dataset]['classifiers'].update(dict2)
 
         #print(dict1)
-        return dict1
+        dict1_JSON = json.dumps(dict1)
+        return dict1_JSON
 
     def predict_song(self, filepath):
         pass
