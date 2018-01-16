@@ -7,10 +7,10 @@ import aiohttp.web
 HOST = os.getenv('HOST', '0.0.0.0')
 PORT = int(os.getenv('PORT', 8080))
 
-'''
-    The websocket handler handles all requests under '/'
-    Also, it prints all messages that gets from the client
-    If message is 'close', the websocket closes.
+'''websocket_handler(request)
+        Handles all requests under '/'
+        Also, it prints all messages that gets from the client
+        If message is 'close', the websocket closes.
 '''
 async def websocket_handler(request):
     print('Websocket connection starting')
@@ -18,9 +18,9 @@ async def websocket_handler(request):
     await ws.prepare(request)
     print('Websocket connection ready')
 
-
     async for msg in ws: # while loop
         print(msg)
+
         if msg.type == aiohttp.WSMsgType.TEXT:
             print(msg.data) # Server echos each message that get from client in terminal
             if msg.data == 'close': # If client sends 'close', websocket closes
@@ -32,9 +32,10 @@ async def websocket_handler(request):
     return ws
 
 '''
-    The main function inits the asyncio loop,
-    handles requests under '/'
-    and runs the app.
+    main()
+        Inits the asyncio loop,
+        handles requests under '/'
+        and runs the app.
 '''
 def main():
     loop = asyncio.get_event_loop()
