@@ -67,6 +67,11 @@ class Classifier:
         """ Delegate class method calls to sklearn's classifier object """
         return getattr(self.clf_obj, name)
 
+    def get_metadata(self):
+        metadata_fields = self.MANDATORY_CLASSIFIER_METADATA_FIELDS + \
+                list(map(lambda x: x[0], self.OPTIONAL_CLASSIFIER_METADATA_FIELDS))
+        return { k: getattr(self, k) for k in metadata_fields }
+
     @classmethod
     def from_file(cls, metadata_filepath):
         """ Import classifier & metadate from file(s) """
@@ -84,10 +89,7 @@ class Classifier:
         if not os.path.exists(dirpath):
             os.makedirs(dirpath)
 
-        metadata_fields = self.MANDATORY_CLASSIFIER_METADATA_FIELDS + \
-                list(map(lambda x: x[0], self.OPTIONAL_CLASSIFIER_METADATA_FIELDS))
-        metadata = { k: getattr(self, k) for k in metadata_fields }
-
+        metadata = self.get_metadata()
         with open(filepath + '.json', 'w') as fp:
             json.dump(metadata, fp, indent=4)
 
