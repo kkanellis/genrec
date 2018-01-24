@@ -4,34 +4,32 @@ import json
 
 class GenrecAPI:
     def __init__(self):
-        ''' Constructor Method for each object of GenrecAPI Class
+        """
+        Constructor Method for each object of GenrecAPI Class
 
-            Constructs `object.models_dict`
-        '''
-
-        dict = {} # Init the Dictionary
+        Constructs `object.models_dict`
+        """
+        dict = { } # Init the Dictionary
 
         # For each dataset
-        for dataset, (classifiers, encoderObj, scalerObj) in get_dataset_models():
+        for dataset, (classifiers, encoder, scaler) in get_dataset_models():
 
             # Init object for the dictionary
-            dictObject = {
+            dataset_dict = {
                 dataset: {
                     "classifiers": {},
-                    "scaler": scalerObj,
-                    "encoder": encoderObj
+                    "scaler": scaler,
+                    "encoder": encoder
                 }
             }
 
-            dict.update(dictObject) # Assign it to the the dictionary
+            dict.update(dataset_dict) # Assign it to the the dictionary
 
             # Populate the classifiers as 'name: object'
             for classifier in classifiers:
                 dict[dataset]["classifiers"][classifier.name] = classifier
 
         self.models_dict = dict
-        # TODO: Test for more than 1 dataset (Spotify, 1MillionSongs, etc)
-        #print(self.models_dict) # Test
 
     def get_available_datasets(self):
         """ Get available datasets for training like GTZAN, Spotify
@@ -46,7 +44,7 @@ class GenrecAPI:
         #   -2- *dict: returns gtzan
 
         datasetNames = list(self.models_dict) # Get names from class member
-        datasets_dict = { "datasets": datasetNames }; # Build mini-dictionary
+        datasets_dict = { "datasets": datasetNames } # Build mini-dictionary
         datasets_JSON = json.dumps(datasets_dict) # Serialize it to JSON
 
         #print(datasets_dict)
@@ -83,7 +81,6 @@ class GenrecAPI:
             dict2[classifierName].update(dict3)
             dict1[dataset]['classifiers'].update(dict2)
 
-        #print(dict1)
         dict1_JSON = json.dumps(dict1)
         return dict1_JSON
 
