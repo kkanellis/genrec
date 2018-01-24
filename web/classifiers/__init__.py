@@ -63,4 +63,3 @@ def get_dataset_models():
         classifiers = [ clf for clf in _get_classifiers(dirpath) ]
 
         yield dataset, (classifiers, encoder, scaler)
-
