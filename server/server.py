@@ -38,8 +38,7 @@ async def websocket_handler(request):
         Serves the `index.html` file
 '''
 async def index_handler(request):
-    print(os.getcwd())
-    return aiohttp.web.FileResponse('./server/index.html')
+    return aiohttp.web.FileResponse('server/static/index.html')
 
 ''' main()
         Inits the asyncio loop,
@@ -47,11 +46,15 @@ async def index_handler(request):
         and runs the app.
 '''
 def main():
+    path_to_static_folder = os.getcwd() + '/server/static/'
+
     loop = asyncio.get_event_loop()
     app = aiohttp.web.Application(loop=loop)
     app.router.add_route('GET', '/ws', websocket_handler)
     app.router.add_route('GET', '/', index_handler)
+    app.router.add_static('/server/static', path_to_static_folder, name='static')
     aiohttp.web.run_app(app, host=HOST, port=PORT)
+
 
 # Start main()
 if __name__ == '__main__':
