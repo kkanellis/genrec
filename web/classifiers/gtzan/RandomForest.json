@@ -1,0 +1,9 @@
+{
+    "name": "RandomForest",
+    "type": "rf",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "n_jobs": -1
+    }
+}

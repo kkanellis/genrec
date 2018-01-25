@@ -1,0 +1,7 @@
+{
+    "name": "LogRegression",
+    "type": "log",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {}
+}

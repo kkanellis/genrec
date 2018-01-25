@@ -1,0 +1,9 @@
+{
+    "name": "Ensemble",
+    "type": "vote",
+    "dataset": "gtzan",
+    "description": "",
+    "clf_kwargs": {
+        "voting": "hard"
+    }
+}
