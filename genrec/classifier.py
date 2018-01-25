@@ -2,9 +2,10 @@
 import json
 import os
 
-from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier, \
+                    RandomForestClassifier, VotingClassifier
 from sklearn.externals import joblib
-from sklearn.linear_model import Perceptron
+from sklearn.linear_model import Perceptron, LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
@@ -19,8 +20,11 @@ supported_classifiers = {
     'dtree': DecisionTreeClassifier,
     'gnb': GaussianNB,
     'perc': Perceptron,
+    'log': LogisticRegression,
     'mlp': MLPClassifier,
     'ada': AdaBoostClassifier,
+    'rf' : RandomForestClassifier,
+    'vote': VotingClassifier
 }
 
 class Classifier:
@@ -67,6 +71,9 @@ class Classifier:
         """ Delegate class method calls to sklearn's classifier object """
         return getattr(self.clf_obj, name)
 
+    def get_classifier_object(self):
+        return self.clf_obj
+
     def get_metadata(self):
         metadata_fields = self.MANDATORY_CLASSIFIER_METADATA_FIELDS + \
                 list(map(lambda x: x[0], self.OPTIONAL_CLASSIFIER_METADATA_FIELDS))
@@ -90,6 +97,11 @@ class Classifier:
             os.makedirs(dirpath)
 
         metadata = self.get_metadata()
+
+        if self.clf_obj.__class__ == VotingClassifier:
+            # Unserializable using JSON
+            del metadata['clf_kwargs']['estimators']
+
         with open(filepath + '.json', 'w') as fp:
             json.dump(metadata, fp, indent=4)
 
