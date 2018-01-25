@@ -1,84 +1,113 @@
 import asyncio
+import json
 import os
 
-import aiohttp.web, json
+import aiohttp.web
+import aiohttp_jinja2
+import jinja2
+
+from web.api import GenrecAPI
 from web.server.ydl.downloader import DownloaderAPI
 
 # Bind to 0.0.0.0:8080
 HOST = os.getenv('HOST', '0.0.0.0')
 PORT = int(os.getenv('PORT', 8080))
 
-''' websocket_handler(request)
-        Handles all requests under '/'
-        Also, it prints all messages that gets from the client
-        If message is 'close', the websocket closes.
-'''
+genrec_api = GenrecAPI()
+classifiers = genrec_api.get_available_classifiers('gtzan')['gtzan']['classifiers'] # FIXME
+
+yt_api = DownloaderAPI()
+
+def make_reply(req_type, msg, success=True):
+    return json.dumps({
+        'command' : req_type[:-3] + "REP",
+        'success' : success,
+        'message': msg,
+    })
+
 async def websocket_handler(request):
+    """
+    Handles all requests under '/'
+    Also, it prints all messages that gets from the client
+    If message is 'close', the websocket closes.
+    """
     print('Websocket connection starting')
     ws = aiohttp.web.WebSocketResponse() # Creates websocket in request
 
     await ws.prepare(request)
     print('Websocket connection ready')
 
-    async for msg in ws: # while loop
-        print(msg)
+    # incoming message loop
+    async for msg in ws:
+        if msg.type != aiohttp.WSMsgType.TEXT:
+            print('ERROR: Invalid message type')
+            continue
 
-        if msg.type == aiohttp.WSMsgType.TEXT:
-            print(msg.data) # Server echos each message that get from client in terminal
+        try:
+            request = json.loads(msg.data)
+            print(request)
 
-            try: # Deserialize data & check if it a request to predict
-                data_dict = json.loads(msg.data)
-                print(data_dict)
+            command  = request.get('command')
+            if command == "VALIDATE_URL_REQ":
+                url = request.get('url')
+                videoId = yt_api.is_url_valid(url)
+                if videoId:
+                    await ws.send_str(
+                        make_reply(command, "Url is valid. Will start download!")
+                    )
+                    yt_api.download(videoId, url)
+                else:
+                    await ws.send_str(
+                        make_reply(command, "Invalid youtube URL!", success=False)
+                    )
+            elif command == "PREDICT_REQ":
+                print("Prediction request")
 
-                request = data_dict.get('request_type')
+                videoId = request.get('videoId')
+                classifier = request.get('classifier')
+                dataset = request.get('dataset')
 
-                if (request == "predict"):
+                print(videoId, classifier, dataset)
 
-                    print("Call predict method here")
-                    pass # predict
-            except: # If not a request to predict
-                print("This is not a request for the server to predict")
-                pass
+                filepath = yt_api.get_filepath(videoId)
+                prediction_json = genrec_api.predict_song(filepath, dataset, classifier)
+                prediction_json.update({
+                    'command': 'PREDICT_REP',
+                    'success': True,
+                })
 
-            # Init DownloaderAPI Class in order to check & download song
-            song = DownloaderAPI(msg.data)
+                await ws.send_str(
+                    json.dumps(prediction_json)
+                )
 
-            try:
-                song.urlValidation()
-                await ws.send_str("Your video is valid!")
+        except Exception as ex:
+            print(f"ERROR: {ex.msg}")
+            await ws.send_str(
+                make_reply(NACK, ex.msg)
+            )
 
-                song.download()
-                await ws.send_str("URL downloading completed!")
-            except:
-                await ws.send_str("Bad URL")
-
-            if msg.data == 'close': # If client sends 'close', websocket closes
-                await ws.close()
-                print('Websocket connection closed')
     return ws
 
-''' index_handler(request):
-        Serves the `index.html` file
-'''
+@aiohttp_jinja2.template('index.html')
 async def index_handler(request):
-    return aiohttp.web.FileResponse('web/server/static/index.html')
+    """ Serves the `index.html` file """
+    return { 'classifiers': classifiers }
 
-''' main()
-        Inits the asyncio loop,
-        handles requests under '/'
-        and runs the app.
-'''
 def main():
-    path_to_static_folder = os.getcwd() + '/web/server/static/'
+    """ Inits the asyncio loop, handles requests under '/' and runs the app. """
+    path_to_static_folder = os.path.join(os.getcwd(), 'web/server/static/')
 
     loop = asyncio.get_event_loop()
     app = aiohttp.web.Application(loop=loop)
+
+    aiohttp_jinja2.setup(app,
+        loader=jinja2.FileSystemLoader(path_to_static_folder))
+
     app.router.add_route('GET', '/ws', websocket_handler)
     app.router.add_route('GET', '/', index_handler)
-    app.router.add_static('/server/static', path_to_static_folder, name='static')
+    app.router.add_static('/static', path_to_static_folder, name='static', show_index=True, follow_symlinks=True)
+
     aiohttp.web.run_app(app, host=HOST, port=PORT)
 
-
-# Start main()
 if __name__ == '__main__':
     main()
