@@ -3,7 +3,7 @@ import youtube_dl
 
 
 class DownloaderAPI():
-    
+
     def __init__(self, url):
         self.ydl_opts = { # options for youtube_dl
             'format': 'bestaudio/best',
@@ -12,9 +12,9 @@ class DownloaderAPI():
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
-            'outtmpl': 'downloadedsongs/%(title)s.%(ext)s'
+            'outtmpl': 'downloads/%(title)s.%(ext)s'
         }
-        
+
         # youtube link
         self.url = url
 
