@@ -2,12 +2,13 @@ import asyncio
 import os
 
 import aiohttp.web
+#from server.ydl import urlValidation, download
 
 # Bind to 0.0.0.0:8080
 HOST = os.getenv('HOST', '0.0.0.0')
 PORT = int(os.getenv('PORT', 8080))
 
-'''websocket_handler(request)
+''' websocket_handler(request)
         Handles all requests under '/'
         Also, it prints all messages that gets from the client
         If message is 'close', the websocket closes.
@@ -23,6 +24,8 @@ async def websocket_handler(request):
 
         if msg.type == aiohttp.WSMsgType.TEXT:
             print(msg.data) # Server echos each message that get from client in terminal
+            #youtubeLink = urlValidation(youtubeLink)
+
             if msg.data == 'close': # If client sends 'close', websocket closes
                 await ws.close()
             else:
@@ -31,8 +34,14 @@ async def websocket_handler(request):
     print('Websocket connection closed')
     return ws
 
+''' index_handler(request):
+        Serves the `index.html` file
 '''
-    main()
+async def index_handler(request):
+    print(os.getcwd())
+    return aiohttp.web.FileResponse('./server/index.html')
+
+''' main()
         Inits the asyncio loop,
         handles requests under '/'
         and runs the app.
@@ -40,7 +49,8 @@ async def websocket_handler(request):
 def main():
     loop = asyncio.get_event_loop()
     app = aiohttp.web.Application(loop=loop)
-    app.router.add_route('GET', '/', websocket_handler)
+    app.router.add_route('GET', '/ws', websocket_handler)
+    app.router.add_route('GET', '/', index_handler)
     aiohttp.web.run_app(app, host=HOST, port=PORT)
 
 # Start main()
