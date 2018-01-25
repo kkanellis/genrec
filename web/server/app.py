@@ -1,13 +1,13 @@
 import asyncio
 import os
 
-import aiohttp.web
-from server.ydl.downloader import DownloaderAPI
+import aiohttp.web, json
+from web.server.ydl.downloader import DownloaderAPI
 
 # Bind to 0.0.0.0:8080
 HOST = os.getenv('HOST', '0.0.0.0')
 PORT = int(os.getenv('PORT', 8080))
-#path_to_static =
+
 ''' websocket_handler(request)
         Handles all requests under '/'
         Also, it prints all messages that gets from the client
@@ -16,6 +16,7 @@ PORT = int(os.getenv('PORT', 8080))
 async def websocket_handler(request):
     print('Websocket connection starting')
     ws = aiohttp.web.WebSocketResponse() # Creates websocket in request
+
     await ws.prepare(request)
     print('Websocket connection ready')
 
@@ -24,6 +25,22 @@ async def websocket_handler(request):
 
         if msg.type == aiohttp.WSMsgType.TEXT:
             print(msg.data) # Server echos each message that get from client in terminal
+
+            try: # Deserialize data & check if it a request to predict
+                data_dict = json.loads(msg.data)
+                print(data_dict)
+
+                request = data_dict.get('request_type')
+
+                if (request == "predict"):
+
+                    print("Call predict method here")
+                    pass # predict
+            except: # If not a request to predict
+                print("This is not a request for the server to predict")
+                pass
+
+            # Init DownloaderAPI Class in order to check & download song
             song = DownloaderAPI(msg.data)
 
             try:
