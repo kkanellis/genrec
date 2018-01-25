@@ -1,6 +1,10 @@
-from web.classifiers import get_dataset_models
-
 import json
+import librosa
+import numpy as np
+import operator
+
+from genrec.features import FeatureExtractor
+from web.classifiers import get_dataset_models
 
 class GenrecAPI:
     def __init__(self):
@@ -13,7 +17,6 @@ class GenrecAPI:
 
         # For each dataset
         for dataset, (classifiers, encoder, scaler) in get_dataset_models():
-
             # Init object for the dictionary
             dataset_dict = {
                 dataset: {
@@ -22,7 +25,6 @@ class GenrecAPI:
                     "encoder": encoder
                 }
             }
-
             dict.update(dataset_dict) # Assign it to the the dictionary
 
             # Populate the classifiers as 'name: object'
@@ -30,6 +32,7 @@ class GenrecAPI:
                 dict[dataset]["classifiers"][classifier.name] = classifier
 
         self.models_dict = dict
+        self.features_extractor = FeatureExtractor()
 
     def get_available_datasets(self):
         """ Get available datasets for training like GTZAN, Spotify
@@ -81,18 +84,54 @@ class GenrecAPI:
             dict2[classifierName].update(dict3)
             dict1[dataset]['classifiers'].update(dict2)
 
-        dict1_JSON = json.dumps(dict1)
-        return dict1_JSON
+        #dict1_JSON = json.dumps(dict1)
+        return dict1
 
-    def predict_song(self, filepath):
-        pass
+    def predict_song(self, filepath, dataset, classifier):
+        # Read audio file
+        sig, _ = librosa.load(filepath, sr=22050, res_type='kaiser_fast')
 
-# Test function only used in the development environment
-def main():
+        # Extract feature vectors
+        fvs = list(self.features_extractor.extract_fvs(sig))
+        fv = self.features_extractor.extract_fv(sig)
 
+        if dataset not in self.models_dict:
+            raise Exception(f"Invalid dataset: {dataset}")
+
+        # Retrieve classifiers, scaler & encoder
+        models = self.models_dict[dataset]
+        scaler, encoder = models["scaler"], models["encoder"]
+
+        try:
+            clf = models["classifiers"][classifier]
+        except KeyError:
+            raise Exception(f"Invalid classifier ({classifier})")
+
+        # Feature vectors for each interval
+        nonsilent_wnds_idx = [ idx for idx, fv in enumerate(fvs) if fv ]
+        X = np.array([ fvs[idx] for idx in nonsilent_wnds_idx ] + [fv])
+        X = scaler.transform(X)
+
+        # Prediction probabilities using the desired classifier
+        proba = clf.predict_proba(X)
+        predictions = { idx : proba[i].tolist() for i, idx in enumerate(nonsilent_wnds_idx) }
+
+        # Prediction for the whole audio file
+        overall_proba = proba[-1]
+        overall_class, overall_confidence = max(enumerate(overall_proba), key=operator.itemgetter(1))
+        overall_class = encoder.inverse_transform(np.array(overall_class))
+
+        return {
+            "prediction_interval_secs": 1,
+            "predictions": predictions,
+            "overall_prediction_class": overall_class,
+            "overall_prediction_confidence": overall_confidence * 100,
+            "genres": encoder.classes_.tolist(),
+        }
+
+if __name__ == '__main__':
     testObject = GenrecAPI()
-    testObject.get_available_classifiers("gtzan")
+    #testObject.get_available_classifiers("gtzan")
     #testObject.get_available_datasets()
-    pass
+    print(testObject.predict_song("./web/youtube.opus", "gtzan", "Ensemble"))
 
-main()
