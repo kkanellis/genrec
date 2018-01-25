@@ -1,5 +1,5 @@
 {
-    "name": "Decision_Tree",
+    "name": "DecisionTree",
     "type": "dtree",
     "dataset": "gtzan",
     "description": "",

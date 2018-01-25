@@ -4,6 +4,6 @@
     "dataset": "gtzan",
     "description": "",
     "clf_kwargs": {
-        "n_neighbors": 5
+        "n_neighbors": 9
     }
 }
