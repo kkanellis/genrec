@@ -2,7 +2,7 @@ import asyncio
 import os
 
 import aiohttp.web
-#from server.ydl import urlValidation, download
+from server.ydl.downloader import DownloaderAPI
 
 # Bind to 0.0.0.0:8080
 HOST = os.getenv('HOST', '0.0.0.0')
@@ -24,14 +24,20 @@ async def websocket_handler(request):
 
         if msg.type == aiohttp.WSMsgType.TEXT:
             print(msg.data) # Server echos each message that get from client in terminal
-            #youtubeLink = urlValidation(youtubeLink)
+            song = DownloaderAPI(msg.data)
+
+            try:
+                song.urlValidation()
+                await ws.send_str("Your video is valid!")
+
+                song.download()
+                await ws.send_str("URL downloading completed!")
+            except:
+                await ws.send_str("Bad URL")
 
             if msg.data == 'close': # If client sends 'close', websocket closes
                 await ws.close()
-            else:
-                await ws.send_str(msg.data + '/answer') # Suffix '/answer' is sent to the client
-
-    print('Websocket connection closed')
+                print('Websocket connection closed')
     return ws
 
 ''' index_handler(request):

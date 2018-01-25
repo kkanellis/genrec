@@ -27,12 +27,12 @@ class DownloaderAPI():
             # Get information about the YouTube video/song
             info_dict = self.ydl.extract_info(self.url, download=False)
 
-        except Exception as e: # The url does not exists or is wrong!
-            raise
+        except: # The url does not exists or is wrong!
+            raise 
 
     def download(self):
         try:
             self.ydl.download([self.url])
 
-        except Exception as e: # something went wrong at downloading process!
+        except: # something went wrong at downloading process!
             raise
