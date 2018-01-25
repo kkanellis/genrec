@@ -7,7 +7,7 @@ from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 
 from genrec.logger import get_logger
-from genrec.utils import np_printoptions, plot_confusion_matrix
+from genrec.utils import np_printoptions, plot_confusion_matrix, plot_classifier_regions
 
 class ClassifierBenchmark:
     """ Benchmark a classifier with specific data """
@@ -23,7 +23,7 @@ class ClassifierBenchmark:
 
         self.X, self.y = data
 
-    def kfold_test(self, k=10, iters=100, plot_cm=False):
+    def kfold_test(self, k=10, iters=100, plot_cm=False, plot_regions=False):
         n_genres = len(self.genres)
 
         train_acc = np.zeros(iters * k)
@@ -76,15 +76,19 @@ class ClassifierBenchmark:
             self.logger.info('Genres: {}'.format(self.genres))
             self.logger.info('Confusion matrix: \n{}'.format(mean_cm))
 
-        # Plot confusion matrix
         if plot_cm:
+            # Plot confusion matrix
             plot_confusion_matrix(
                 cm, self.display_name,
                 self.clf.__class__.__name__
             )
 
+        if plot_regions:
+            # Plot classifier areas
+            plot_classifier_regions(self.X, self.y, self.clf,
+                    clf_name=self.display_name)
+
     def get_classifier_obj(self):
         """ Returns the last classifier object used """
         return self.clf
-
 
