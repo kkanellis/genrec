@@ -2,9 +2,10 @@
     "name": "SVM_Linear",
     "type": "svm",
     "dataset": "gtzan",
-    "description": "",
+    "description": "Linear Kernel SVM",
     "clf_kwargs": {
         "kernel": "linear",
-        "cache_size": 2000
+        "cache_size": 2000,
+        "probability": true
     }
 }

@@ -2,7 +2,7 @@
     "name": "RandomForest",
     "type": "rf",
     "dataset": "gtzan",
-    "description": "",
+    "description": "Random Forest",
     "clf_kwargs": {
         "n_jobs": -1
     }

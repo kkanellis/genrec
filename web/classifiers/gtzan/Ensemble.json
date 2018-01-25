@@ -2,8 +2,8 @@
     "name": "Ensemble",
     "type": "vote",
     "dataset": "gtzan",
-    "description": "",
+    "description": "Ensemble Classifier",
     "clf_kwargs": {
-        "voting": "hard"
+        "voting": "soft"
     }
 }

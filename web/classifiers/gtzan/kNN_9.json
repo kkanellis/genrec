@@ -1,9 +1,0 @@
-{
-    "name": "kNN_9",
-    "type": "knn",
-    "dataset": "gtzan",
-    "description": "",
-    "clf_kwargs": {
-        "n_neighbors": 9
-    }
-}

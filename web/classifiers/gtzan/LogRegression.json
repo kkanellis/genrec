@@ -2,6 +2,6 @@
     "name": "LogRegression",
     "type": "log",
     "dataset": "gtzan",
-    "description": "",
+    "description": "Logistic Regression",
     "clf_kwargs": {}
 }

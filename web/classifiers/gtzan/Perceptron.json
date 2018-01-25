@@ -1,7 +1,0 @@
-{
-    "name": "Perceptron",
-    "type": "perc",
-    "dataset": "gtzan",
-    "description": "",
-    "clf_kwargs": {}
-}

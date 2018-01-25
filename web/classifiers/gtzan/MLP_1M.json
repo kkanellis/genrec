@@ -2,7 +2,7 @@
     "name": "MLP_1M",
     "type": "mlp",
     "dataset": "gtzan",
-    "description": "",
+    "description": "Perceptron (50 neurons)",
     "clf_kwargs": {
         "hidden_layer_sizes": [
             50

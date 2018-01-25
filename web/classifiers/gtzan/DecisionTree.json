@@ -2,7 +2,7 @@
     "name": "DecisionTree",
     "type": "dtree",
     "dataset": "gtzan",
-    "description": "",
+    "description": "Decision Tree",
     "clf_kwargs": {
         "criterion": "entropy"
     }

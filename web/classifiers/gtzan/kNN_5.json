@@ -2,7 +2,7 @@
     "name": "kNN_5",
     "type": "knn",
     "dataset": "gtzan",
-    "description": "",
+    "description": "k-Nearest Neighbours (k=5)",
     "clf_kwargs": {
         "n_neighbors": 5
     }
