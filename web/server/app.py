@@ -7,7 +7,7 @@ import aiohttp_jinja2
 import jinja2
 
 from web.api import GenrecAPI
-from web.server.ydl.downloader import DownloaderAPI
+from web.server.downloader import DownloaderAPI
 
 # Bind to 0.0.0.0:8080
 HOST = os.getenv('HOST', '0.0.0.0')
