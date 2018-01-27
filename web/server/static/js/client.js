@@ -5,17 +5,20 @@ var connection = new WebSocket("ws://localhost:8080/ws")
 connection.onopen = function () {
   var youtube_link = 'https://www.youtube.com/watch?v=nppKPgdc_u0';
 
+  var validate_url = {
+    "command" : "validate-url",
+    "url" : youtube_link,
+  };
+
   // Construct an object to test if server knows when to predict a song
   var user_preferences = {
-    "request_type" : "predict",
+    "command" : "predict",
     "dataset" : "gtzan",
     "classifiers": "kNN_5",
     "videoId" : "Ids34fx9", // Arbitrary stuff for now: Must be replaced with process of ydl.download
   };
 
-  //connection.send(JSON.stringify(user_preferences)); // Send the message to the server
-  connection.send(youtube_link); // Send the message to the server
-
+  connection.send(JSON.stringify(validate_url)); // Send the message to the server
 };
 
 // Log errors
@@ -25,5 +28,18 @@ connection.onerror = function (error) {
 
 // Log messages from the server
 connection.onmessage = function (e) {
-  console.log('Server: ' + e.data);
+  reply = JSON.parse(e.data)
+  
+  if (reply.command == 'OK') {
+    console.info('Server: ' + reply.message);
+  }
+  else if (reply.command == 'ERROR') {
+    console.error('Server: ' + reply.message);
+  }
+  else if (reply.command == 'prediction') {
+   
+  }
+  else
+    console.error('Invalid command received: ' + reply.command);
+  }
 };

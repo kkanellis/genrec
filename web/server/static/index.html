@@ -1,48 +1,257 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>genrec</title>
+<html lang="en">
+
+  <!-- Head -->
+  <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-    <style>
-    .loader {
-      border: 16px solid #f3f3f3;
-      border-radius: 50%;
-      border-top: 16px solid #3498db;
-      width: 120px;
-      height: 120px;
-      -webkit-animation: spin 2s linear infinite; /* Safari */
-      animation: spin 2s linear infinite;
-    }
+    <title>Genrec -- Automatic musical genre recognition using ML</title>
 
-    /* Safari */
-    @-webkit-keyframes spin {
-      0% { -webkit-transform: rotate(0deg); }
-      100% { -webkit-transform: rotate(360deg); }
-    }
+    <!-- Bootstrap core CSS -->
+    <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    </style>
-</head>
-<body>
+    <!-- Custom fonts for this template -->
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
-<div id="response">
-    <pre></pre>
-</div>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.4.1/css/simple-line-icons.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
 
-<form id="download-form">
-    <input type="text" id="youtube_link" name="youtube_link" placeholder="Youtube link" />
-    <button type="submit">Submit</button>
-</form>
-<div id="load" class=""></div>
-<font color="red"><p id="p1"></p></font>
+    <!-- Custom styles for this template -->
+    <link href="static/css/landing-page.min.css" rel="stylesheet">
 
-<img id="myImg" src="" alt="" height="300" width="300">
+    <!-- NProgress CSS -->
+    <link href='static/css/nprogress.css' rel='stylesheet'/>
+  </head>
 
-<script src="server/static/client.js"></script>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-light bg-light static-top">
+      <div class="container">
+          <a class="navbar-brand" href="#"><b>Gen</b>re <b>Rec</b>ognition</a>
+        <a class="btn btn-primary" href="#">About</a>
+      </div>
+    </nav>
 
-</body>
+    <!-- Masthead -->
+    <header class="masthead text-white text-center">
+      <div class="overlay"></div>
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-6 mx-auto">
+              <h1 class="mb-5">Automatic musical genre classification using ML</h1>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-10 col-lg-8 col-xl-7 mx-auto">
+              <div class="form-row">
+                <div class="col-12 col-md-9 mb-2 mb-md-0">
+                <div class="input-group">
+                  <span class="input-group-addon" style="color:#fff;background-color:#dc3545">
+                     <i class="fa fa-youtube-play"></i>
+                  </span>
+                  <input id="input-yt-url" type="url" class="form-control form-control-lg" placeholder="Enter YouTube link..." />
+                </div>
+                </div>
+                <div class="col-12 col-md-3">
+                  <a id="btn-yt-url" class="btn btn-block btn-lg btn-danger" data-loading-text="Processing...">Process</a>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Engine preferences-->
+    <section id="preferences-section" class="features-icons bg-light text-center">
+      <h2 class="mb-4">Engine Preferences </h4>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-4">
+           <div class="card">
+             <div class="card-body" data-toggle="buttons">
+               <h5 class="card-title">Select dataset</h5>
+               <p class="card-text">Choose on which dataset you want the classifer model to be trained on: </p>
+               <label class="btn btn-success active">
+                 <input type="radio" name="input-dataset" autocomplete="off" checked>Select
+               </label> 
+               <p class="card-text">GTZAN
+                 <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" title="Tooltip on top" ></i>
+               </p>
+             </div>
+           </div> 
+          </div>
+
+          <div class="col-lg-8">
+            <div class="card">
+             <div class="card-body">
+               <h5 class="card-title">Select classifier</h5>
+               <p class="card-text">Choose which classifier you want to use for predicting the musical genre: </p>
+
+                {% for name,clf in classifiers.items() %}
+                <label class="custom-control custom-radio">
+                    <input id="clf-{{name}}" name="radio-classifier" type="radio" value={{name}} class="custom-control-input" {% if loop.first %}checked{% endif %}>
+                  <span class="custom-control-indicator"></span>
+                  <span class="custom-control-description">{{clf.description}}</span>
+                </label>
+                {% endfor %} 
+             </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4 align-items-center justify-content-center ">
+           <a id='btn-preferences' href='#' class="btn btn-lg btn-primary">Save preferences</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Youtube Video -->
+    <div id="ytvideo-section"></div>
+    <section class="text-center" style="background-color:#000000">
+        <div id="ytplayer"></div>
+    </section>
+
+    <!-- Image Showcases -->
+    <section id="chart-section" class="showcase">
+      <div class="container-fluid p-0">
+
+        <div class="row no-gutters">
+          <div class="col-lg-7 order-lg-1 text-center showcase-img d-flex align-items-center ">
+            <canvas id="chart"></canvas>
+          </div>
+          <div class="col-lg-5 order-lg-2 my-auto showcase-text">
+            <h2>Overall Song Prediction</h2>
+            <p id="overall-prediction-text" class="lead mb-0"></p>
+          </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <!--
+    <section class="testimonials text-center bg-light">
+      <div class="container">
+        <h2 class="mb-5">What people are saying...</h2>
+        <div class="row">
+          <div class="col-lg-4">
+            <div class="testimonial-item mx-auto mb-5 mb-lg-0">
+              <img class="img-fluid rounded-circle mb-3" src="static/img/testimonials-1.jpg" alt="">
+              <h5>Margaret E.</h5>
+              <p class="font-weight-light mb-0">"This is fantastic! Thanks so much guys!"</p>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="testimonial-item mx-auto mb-5 mb-lg-0">
+              <img class="img-fluid rounded-circle mb-3" src="static/img/testimonials-2.jpg" alt="">
+              <h5>Fred S.</h5>
+              <p class="font-weight-light mb-0">"Bootstrap is amazing. I've been using it to create lots of super nice landing pages."</p>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="testimonial-item mx-auto mb-5 mb-lg-0">
+              <img class="img-fluid rounded-circle mb-3" src="static/img/testimonials-3.jpg" alt="">
+              <h5>Sarah	W.</h5>
+              <p class="font-weight-light mb-0">"Thanks so much for making these free resources available to us!"</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    -->
+
+    <!-- Footer -->
+    <footer class="footer bg-light">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-6 h-100 text-center text-lg-left my-auto">
+            <ul class="list-inline mb-2">
+              <li class="list-inline-item">
+                <a href="#">About</a>
+              </li>
+              <!--
+              <li class="list-inline-item">&sdot;</li>
+              <li class="list-inline-item">
+                <a href="#">Contact</a>
+              </li>
+              <li class="list-inline-item">&sdot;</li>
+              <li class="list-inline-item">
+                <a href="#">Terms of Use</a>
+              </li>
+              <li class="list-inline-item">&sdot;</li>
+              <li class="list-inline-item">
+                <a href="#">Privacy Policy</a>
+              </li>
+              -->
+            </ul>
+            <p class="text-muted small mb-4 mb-lg-0">&copy; Genrec 2018. All Lefts Reserved.</p>
+          </div>
+          <div class="col-lg-6 h-100 text-center text-lg-right my-auto">
+            <ul class="list-inline mb-0">
+              <!--
+              <li class="list-inline-item mr-3">
+                <a href="#">
+                  <i class="fa fa-facebook fa-2x fa-fw"></i>
+                </a>
+              </li>
+              <li class="list-inline-item mr-3">
+                <a href="#">
+                  <i class="fa fa-twitter fa-2x fa-fw"></i>
+                </a>
+              </li>
+              <li class="list-inline-item">
+                <a href="#">
+                  <i class="fa fa-instagram fa-2x fa-fw"></i>
+                </a>
+              </li>
+              -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Error modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header alert-danger">
+            <h5 class="modal-title" id="exampleModalLongTitle">Error</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              An error occured
+          </div>
+          <!--<div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>-->
+        </div>
+      </div>
+    </div> 
+
+    <!-- Bootstrap core JavaScript -->
+   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script> 
+
+    <!-- Main -->
+    <script src="static/js/main.js"></script>
+
+    <!-- Utils -->
+    <script src="static/js/utils.js"></script>
+
+    <!-- NProgress -->
+    <script src="https://unpkg.com/nprogress@0.2.0/nprogress.js"></script>
+    
+    <!-- YouTube API js -->
+    <script src="https://www.youtube.com/iframe_api" async></script>
+    <script src="static/js/youtube.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js"></script>
+    <script src="static/js/chart.js"></script>
+  </body>
+
 </html>
